@@ -6,10 +6,15 @@ import Subtitle from "../components/MealDetail/Subtitle";
 import List from "../components/MealDetail/List";
 import IconButton from "../components/IconButton";
 import { FavouritesContext } from "../store/context/favourites-Context";
+import { useSelector, useDispatch } from "react-redux";
+import { likeMeal, dislikeMeal } from "../store/redux/liked";
 function MealDetails({ route, navigation }) {
   const favouritesCtx = useContext(FavouritesContext);
+  const likedMealIds = useSelector((state) => state.likedMeals);
+  const dispatch = useDispatch();
   const mealId = route.params.MealId;
   const MealIsFavourite = favouritesCtx.ids.includes(mealId);
+  const MealIsLiked = likedMealIds.ids.includes(mealId);
   const SelectedMeal = MEALS.find((meal) => meal.id === mealId);
 
   function changeFavouriteStatusHandler() {
@@ -19,13 +24,24 @@ function MealDetails({ route, navigation }) {
       favouritesCtx.addFavourite(mealId);
     }
   }
+  function changeLikedStatusHandler() {
+    if (MealIsLiked) {
+      dispatch(dislikeMeal({ id: mealId }));
+    } else {
+      dispatch(likeMeal({ id: mealId }));
+    }
+  }
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => {
         return (
           <View style={styles.iconContainer}>
-            <IconButton name="heart-outline" color={"red"} />
+            <IconButton
+              name={MealIsLiked ? "heart" : "heart-outline"}
+              color={"red"}
+              onPress={changeLikedStatusHandler}
+            />
             <IconButton
               name={MealIsFavourite ? "star" : "star-outline"}
               color={"gold"}
@@ -68,7 +84,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
-    marginRight: 15
+    marginRight: 15,
   },
   image: {
     width: "100%",
